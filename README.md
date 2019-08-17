@@ -1,8 +1,4 @@
-<img src="https://critimon.boardiesitsolutions.com/images/logo.png" width="150">
-
-# NOTICE
-This is not yet ready for use - We will be launching a new version of CritiMon
-very soon at which point this library will then be tagged and be ready for use with the service
+<img src="https://critimon.com/images/logo.png" width="150">
 
 # Introduction
 The CritiMon C++ library allows you to send both handled and unhandled crashes to the CritiMon 
