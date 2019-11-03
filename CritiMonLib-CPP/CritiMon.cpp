@@ -19,7 +19,9 @@ string CritiMon::APIKey;
 string CritiMon::DeviceID;
 string CritiMon::AppID;
 string CritiMon::Version;
-string CritiMon::api_url = "https://engine.critimon.com";
+//string CritiMon::api_url = "https://engine.critimon.com";
+string CritiMon::api_url = "http://192.168.1.118:500";
+bool  CritiMon::disableSSLPeerVerification = false;
 
 bool CritiMon::CritiMonInitialised = false;
 //std::string SessionID = "";
@@ -35,6 +37,11 @@ std::vector<std::map<string, string>> CritiMon::retryCrashQueue = std::vector<st
 void CritiMon::OverrideAPIURL(string overrideUrl)
 {
 	CritiMon::api_url = overrideUrl;
+}
+
+void CritiMon::shouldDisableSSLPeerVerification(bool disable)
+{
+	CritiMon::disableSSLPeerVerification = disable;
 }
 
 void CritiMon::Initialise(std::string& api_key, std::string& app_id, std::string& version, void(*eventcallback)(int statusCode, std::string message))

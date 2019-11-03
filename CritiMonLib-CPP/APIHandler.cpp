@@ -31,7 +31,11 @@ void APIHandler::execute(APIHandler::API_METHOD apiMethod, void(*eventcallback)(
 		if (apiMethod == APIHandler::API_METHOD::SendCrash)
 		{
 			stringstream cookies;
-			cookies << "SESSIONID=" << CritiMon::SessionID << "; " << endl;
+			cookies << "SESSIONID=" << CritiMon::SessionID << "; ";
+			if (CritiMon::DOLB.length() > 0)
+			{
+				cookies << "DO-LB=" << CritiMon::DOLB << ";";
+			}
 			curl_easy_setopt(curl, CURLOPT_COOKIE, cookies.str().c_str());
 			//headers = curl_slist_append(headers, cookies.str().c_str());
 		}
@@ -45,6 +49,10 @@ void APIHandler::execute(APIHandler::API_METHOD apiMethod, void(*eventcallback)(
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)this);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlStaticAPIHandler);
 		curl_easy_setopt(curl, CURLOPT_COOKIEJAR, "");
+		if (CritiMon::disableSSLPeerVerification)
+		{
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+		}
 		//curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curlStaticHeader);
 		string postDataString = this->returnPostDataString(apiMethod);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postDataString.c_str());
@@ -104,10 +112,11 @@ void APIHandler::execute(APIHandler::API_METHOD apiMethod, void(*eventcallback)(
 
 					while (current->next != NULL)
 					{
+						current = current->next;
 						string cookieString = string(current->data);
 						CookieObj cookieObj = this->storeCookie(cookieString);
 						cookieObjects.push_back(cookieObj);
-						current = cookies->next;
+						
 
 						i++;
 					}
@@ -146,11 +155,11 @@ void APIHandler::execute(APIHandler::API_METHOD apiMethod, void(*eventcallback)(
 			if (apiMethod == APIHandler::API_METHOD::Initialise && CritiMon::retryCrashQueue.size() > 0)
 			{
 				//Retry the crashes
-				for (std::vector<std::map<std::string, std::string >> ::iterator it = CritiMon::retryCrashQueue.begin(); it != CritiMon::retryCrashQueue.end(); ++it)
+				/*for (std::vector<std::map<std::string, std::string >> ::iterator it = CritiMon::retryCrashQueue.begin(); it != CritiMon::retryCrashQueue.end(); ++it)
 				{
 					APIHandler apiHandler(*it);
 					apiHandler.execute(APIHandler::API_METHOD::SendCrash);
-				}
+				}*/
 			}
 			if (apiMethod == APIHandler::API_METHOD::Initialise && result == 0)
 			{

@@ -55,9 +55,11 @@ public:
 	void SendCrash(std::exception& exception, CritiMon::CrashSeverity crashSeverity, std::map<std::string, std::string> customProperties, void(*eventcallback)(int statusCode, std::string message) = nullptr);
 	void SendCrash(std::exception& exception, CritiMon::CrashSeverity crashSeverity, std::string customPropertyKey, std::string customPropertyValue, void(*eventcallback)(int statusCode, std::string message) = nullptr);
 	void OverrideAPIURL(std::string apiUrl);
+	void shouldDisableSSLPeerVerification(bool disable);
 	static std::string SessionID;
 	static std::string DOLB;
 	static bool terminateHandlerInstalled;
+	static bool disableSSLPeerVerification;
 	static std::string api_url;
 	void sendUnhandledCrash();
 	static std::string APIKey;
@@ -66,6 +68,7 @@ public:
 	static std::string Version;
 	static std::vector<std::map<std::string, std::string>> retryCrashQueue;
 	static bool CritiMonInitialised;
+
 private:
 	std::map<std::string, std::string> getPostData(std::exception& exception, CritiMon::CrashSeverity crashSeverity, bool handledCrash);
 	std::string returnBacktrace();
@@ -78,6 +81,7 @@ private:
 
 	std::string readCurrentVersionRegKey(std::string key);
 	std::string getArchitecture();
+	
 	
 
 	
