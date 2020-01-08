@@ -68,6 +68,7 @@ public:
 	static std::string Version;
 	static std::vector<std::map<std::string, std::string>> retryCrashQueue;
 	static bool CritiMonInitialised;
+	
 
 private:
 	std::map<std::string, std::string> getPostData(std::exception& exception, CritiMon::CrashSeverity crashSeverity, bool handledCrash);
@@ -78,6 +79,8 @@ private:
 	std::string getSeverityString(CritiMon::CrashSeverity& severity);
 	std::string generateDeviceID();
 	void getOSDetails(std::string *osName, std::string *build);
+	static void signalHandler(int signum);
+	static CritiMon* critimon;
 
 	std::string readCurrentVersionRegKey(std::string key);
 	std::string getArchitecture();

@@ -8,7 +8,9 @@
 
 
 #include "CritiMon.h"
-
+#include <csignal>
+#include <exception>
+#include "SignalException.h"
 using namespace std;
 
 //void CritiMon::Initialise(std::string& api_key, std::string& app_id, std::string& version);
@@ -29,6 +31,8 @@ std::string APIKey = "";
 std::string AppID = "";
 bool CritiMon::terminateHandlerInstalled = false;
 std::vector<std::map<string, string>> CritiMon::retryCrashQueue = std::vector<std::map<string, string>>();
+static SignalException* signalException = NULL;
+CritiMon *CritiMon::critimon = NULL;
 
 /**
 * You should not use this method. This is used only for Boardies IT Solutions for testing purposes. 
@@ -42,6 +46,39 @@ void CritiMon::OverrideAPIURL(string overrideUrl)
 void CritiMon::shouldDisableSSLPeerVerification(bool disable)
 {
 	CritiMon::disableSSLPeerVerification = disable;
+}
+
+void CritiMon::signalHandler(int signum)
+{
+	
+	switch (signum)
+	{
+		case SIGABRT:
+			signalException = new SignalException(signum, "An abort signal was received");
+			break;
+		case SIGFPE:
+			signalException = new SignalException(signum, "Erroneous Arithmetic Operation Signal Received");
+			break;
+		case SIGILL:
+			signalException = new SignalException(signum, "Processor Command Error Signal Received");
+			break;
+		case SIGSEGV:
+			signalException = new SignalException(signum, "Memory Access Violation Signal Received");
+			break;
+		default:
+			signalException = new SignalException(signum, "An unexpected signal was detected");
+			break;
+	}
+
+
+	if (CritiMon::critimon != NULL)
+	{
+		CritiMon::critimon->SendCrash(*signalException, CritiMon::CrashSeverity::Critical);
+	}
+	exit(EXIT_FAILURE);
+	
+
+	//CritiMon::SendCrash((SignalException&)signalException, CritiMon::CrashSeverity::Critical);
 }
 
 void CritiMon::Initialise(std::string& api_key, std::string& app_id, std::string& version, void(*eventcallback)(int statusCode, std::string message))
@@ -83,6 +120,14 @@ void CritiMon::Initialise(std::string& api_key, std::string& app_id, std::string
 		CritiMon::terminateHandlerInstalled = true;
 	}
 	
+	//register the signals
+	//We don't register SIGINT as this is a usually a user initiatted graceful shutdown so not a failure/crash
+	signal(SIGABRT, CritiMon::signalHandler); //Critical error detected such as a double free or memory allocation failure
+	signal(SIGFPE, CritiMon::signalHandler); //Erroneous arithimetic operation such as divide by zero
+	signal(SIGILL, CritiMon::signalHandler); //Processor command error
+	signal(SIGSEGV, CritiMon::signalHandler); //Memory access violation
+
+
 	std::map<std::string, std::string> postData;
 	postData["APIKey"] = APIKey;
 	postData["AppID"] = AppID;
@@ -92,6 +137,7 @@ void CritiMon::Initialise(std::string& api_key, std::string& app_id, std::string
 
 	APIHandler apiHandler(postData);
 	apiHandler.execute(APIHandler::API_METHOD::Initialise, eventcallback);
+	this->critimon = this;
 }
 
 void CritiMon::SendCrash(std::exception& exception, CritiMon::CrashSeverity crashSeverity, std::string customPropertyKey, std::string customPropertyValue, void(*eventcallback)(int statusCode, std::string message))
@@ -157,6 +203,12 @@ std::map<std::string, std::string> CritiMon::getPostData(std::exception& excepti
 		screenResolutionString << "Unknown";
 	}
 	string exceptionType = typeid(exception).name();
+
+	if (exceptionType.compare("SignalException") != 0)
+	{
+		SignalException signalException = (SignalException&)exception;
+		exceptionType = signalException.getExceptionType();
+	}
 	//exceptionType = exceptionType.replace(exceptionType.find("class "), exceptionType.length(), "");
 
 	string osName = "";
