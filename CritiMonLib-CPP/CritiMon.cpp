@@ -208,6 +208,7 @@ std::map<std::string, std::string> CritiMon::getPostData(std::exception& excepti
 	{
 		SignalException signalException = (SignalException&)exception;
 		exceptionType = signalException.getExceptionType();
+		handledCrash = false;
 	}
 	//exceptionType = exceptionType.replace(exceptionType.find("class "), exceptionType.length(), "");
 
