@@ -21,8 +21,7 @@ string CritiMon::APIKey;
 string CritiMon::DeviceID;
 string CritiMon::AppID;
 string CritiMon::Version;
-//string CritiMon::api_url = "https://engine.critimon.com";
-string CritiMon::api_url = "http://192.168.1.118:500";
+string CritiMon::api_url = "https://engine.critimon.com";
 bool  CritiMon::disableSSLPeerVerification = false;
 
 bool CritiMon::CritiMonInitialised = false;
